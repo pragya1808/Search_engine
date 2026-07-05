@@ -22,7 +22,7 @@ class QueryExecutor:
       if operator in ("=","=="):
         return self.engine.equals_numeric(field, value)
       elif operator == "!=":
-        return self.engine.query_not(self.equals_numeric(field, value))
+        return self.engine.query_not(self.engine.equals_numeric(field, value))
       elif operator == ">":
         return self.engine.greater_than(field, value)
       elif operator == ">=":
@@ -46,7 +46,7 @@ class QueryExecutor:
         return self.engine.lookup(field, value)
       elif operator == "!=":
         self.engine.validate_query_value(field, value)
-        return self.engine.query_not(self.lookup(field, value))
+        return self.engine.query_not(self.engine.lookup(field, value))
       elif operator == "IN":
         return self.engine.query_in(field, value)
       elif operator == "NOT IN":

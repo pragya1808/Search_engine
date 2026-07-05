@@ -130,8 +130,11 @@ class SearchEngine:
     index_document = create_document
     # batch ingest
     def index_documents(self, docs):
+        doc_ids=[]
         for doc in docs:
-            self.index_document(doc)
+            doc_id=self.index_document(doc)
+            doc_ids.append(doc_id)
+        return doc_ids
 
     ## Persistence
     def save(self,path):
@@ -323,6 +326,10 @@ class SearchEngine:
         tree = parser.parse(query)
         executor = QueryExecutor(self)
         return executor.execute(tree)
+
+    def search_ids(self, query):
+        bitmap = self.search_bitmap(query)
+        return list(bitmap)
 
     def compile_query(self, query):
         parser = QueryParser(self.schema)
