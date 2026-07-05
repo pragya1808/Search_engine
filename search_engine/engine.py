@@ -3,6 +3,7 @@ from search_engine.bsi import BSI
 from pyroaring import BitMap
 from search_engine.executor import QueryExecutor
 from datetime import datetime,date
+from .persistence import Persistence
 
 class SearchEngine:
     def __init__(self, ignored_fields=None):
@@ -132,8 +133,15 @@ class SearchEngine:
         for doc in docs:
             self.index_document(doc)
 
-    ## CRUD
+    ## Persistence
+    def save(self,path):
+        Persistence.save(self,path)
 
+    @classmethod
+    def load(cls, path):
+        return Persistence.load(path)
+
+    ## CRUD
     #Read
     def get_document(self,doc_id):
         if doc_id not in self.documents:
