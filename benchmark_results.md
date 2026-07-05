@@ -8,13 +8,13 @@ This document presents the benchmarking methodology and performance results for 
 
 **Machine**
 
-* CPU: *Fill in your processor (e.g., Intel Core i5-12450H / AMD Ryzen 7 5800H)*
-* RAM: *Fill in installed RAM*
-* Operating System: *Windows 11 / Ubuntu 24.04 / etc.*
+* CPU: *12th Gen Intel(R) Core(TM) i3-1215U*
+* RAM: *15Gi*
+* Operating System: *Ubuntu 24.04.4*
 
 **Software**
 
-* Python Version: *Fill in output of `python --version`*
+* Python Version: *Python 3.12.3*
 * Search Engine Implementation: Python
 * Bitmap Library: PyRoaring (`pyroaring.BitMap`)
 
