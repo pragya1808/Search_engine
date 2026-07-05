@@ -15,6 +15,12 @@ class BSI:
     for i in range(len(self.slices)):
       if ((value>>i)&1)==1:       #if the i'th bit is 1 we add the document to slice[i]
         self.slices[i].add(doc_id)
+  def remove(self,doc_id,value):
+    if doc_id in self.all_docs:
+        self.all_docs.remove(doc_id)
+    for i in range(len(self.slices)):
+      if(value>>i)&1:
+        self.slices[i].remove(doc_id)
 
   def print_slices(self):
     for i, bitmap in enumerate(self.slices):
@@ -24,8 +30,7 @@ class BSI:
     if value.bit_length() > len(self.slices):
         return BitMap()
     answer = self.all_docs.copy()
-    bits = max(len(self.slices), value.bit_length())
-    for i in range(bits):
+    for i in range(len(self.slices)):
       if ((value >> i) & 1) == 1:
         answer &= self.slices[i]
       else:

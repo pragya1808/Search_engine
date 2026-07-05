@@ -1,7 +1,7 @@
 from search_engine.parser import QueryParser
 from search_engine.bsi import BSI
 from pyroaring import BitMap
-from search_engine.executer import QueryExecutor
+from search_engine.executor import QueryExecutor
 from datetime import datetime,date
 
 class SearchEngine:
@@ -61,41 +61,40 @@ class SearchEngine:
             return int(round(value * self.float_scale))
         return value
 
-    # Index one document
-    def index_document(self, doc):
-        # Update schema with any newly discovered fields
-        self.build_schema(doc)
-        doc_id = self.next_doc_id
+    def validate_query_value(self, field, value):
+        if field not in self.schema:
+            raise ValueError(f"Unknown field '{field}'")
+        expected = self.schema[field]["type"]
+        actual = self.determine_type(value)
+        if actual in ("int", "float") and value < 0:
+            raise ValueError("Negative numeric values are not supported.")
+        if actual != expected:
+            raise ValueError(f"Field '{field}' expects {expected}, got {actual}")
+
+    def _validate_document(self, doc):
         #vaildation
         for field, value in doc.items():
             # Ignore fields that aren't indexed
             if field.lower() in self.ignored_fields:
                 continue
-
             field_type = self.determine_type(value)
-
             if field_type=="unknown":
                 raise ValueError(f"Unsupported type for field {field}")
-
             if field not in self.schema:
                 raise ValueError(f"Unknown field {field}")
-
             if field_type != self.schema[field]["type"]:
                 raise ValueError(f"{field} should be {self.schema[field]['type']}")
             if field_type in ("int", "float") and value < 0:
                 raise ValueError("Negative integers are not supported.")
-            if field not in self.field_present:
-                self.field_present[field] = BitMap()
-            self.field_present[field].add(doc_id)
 
-        # Save original document
-        self.documents[doc_id] = doc
-        self.all_docs.add(doc_id)
-
+    def _index_fields(self, doc_id, doc):
         #index
         for field, value in doc.items():
             if field.lower() in self.ignored_fields:
                 continue
+            if field not in self.field_present:
+                self.field_present[field] = BitMap()
+            self.field_present[field].add(doc_id)
             #BSI
             if self.schema[field]["bsi"]:
                 if field not in self.bsi_index:
@@ -110,22 +109,85 @@ class SearchEngine:
             if value not in self.index[field]:
                 self.index[field][value] = BitMap()
             self.index[field][value].add(doc_id)
+
+
+    # Index one document
+    def create_document(self, doc):
+        # Update schema with any newly discovered fields
+        self.build_schema(doc)
+        self._validate_document(doc)
+        doc_id = self.next_doc_id
+        # Save original document
+        self.documents[doc_id] = doc
+        self.all_docs.add(doc_id)
+        #index
+        self._index_fields(doc_id,doc)
         self.next_doc_id += 1
+        return doc_id
 
-    def validate_query_value(self, field, value):
-        if field not in self.schema:
-            raise ValueError(f"Unknown field '{field}'")
-        expected = self.schema[field]["type"]
-        actual = self.determine_type(value)
-        if actual in ("int", "float") and value < 0:
-            raise ValueError("Negative numeric values are not supported.")
-        if actual != expected:
-            raise ValueError(f"Field '{field}' expects {expected}, got {actual}")
 
+    index_document = create_document
     # batch ingest
     def index_documents(self, docs):
         for doc in docs:
             self.index_document(doc)
+
+    ## CRUD
+
+    #Read
+    def get_document(self,doc_id):
+        if doc_id not in self.documents:
+            raise KeyError(f"Document with id {doc_id} does not exist.")
+        return self.documents[doc_id]
+
+    #Delete
+    def delete_document(self,doc_id):
+        if doc_id not in self.documents:
+            raise KeyError(f"Document with id {doc_id} does not exist.")
+        doc = self.documents[doc_id]
+        for field,value in doc.items():
+            if field.lower() in self.ignored_fields:
+                continue
+            if doc_id in self.field_present[field]:
+                self.field_present[field].remove(doc_id)
+            if len(self.field_present[field]) == 0:
+                del self.field_present[field]
+            if self.schema[field]["bsi"]:
+                encoded_value = self.encode_numeric(field, value)
+                self.bsi_index[field].remove(doc_id, encoded_value)
+                if len(self.bsi_index[field].all_docs) == 0:
+                    del self.bsi_index[field]
+
+            if self.schema[field]["bitmap"]:
+                bitmap = self.index[field][value]
+                if doc_id in bitmap:
+                    bitmap.remove(doc_id)
+                if len(bitmap) == 0:
+                    del self.index[field][value]
+                if len(self.index[field]) == 0:
+                    del self.index[field]
+
+        self.all_docs.remove(doc_id)
+        del self.documents[doc_id]
+        return True
+
+    #update
+    def update_document(self, doc_id, new_doc):
+        if doc_id not in self.documents:
+            raise KeyError(f"Document with id {doc_id} does not exist.")
+        self.build_schema(new_doc)
+        self._validate_document(new_doc)
+        old_doc = self.documents[doc_id]
+        updated_doc=old_doc.copy()
+        updated_doc.update(new_doc)
+        self.delete_document(doc_id)
+        self.documents[doc_id] = updated_doc
+        self.all_docs.add(doc_id)
+        self._index_fields(doc_id,updated_doc)
+        return doc_id
+
+
+
 
     # BitMap operation
     def lookup(self, field, value):## returns bitmap
@@ -210,7 +272,7 @@ class SearchEngine:
     def equals_numeric(self,field,value):
         self.validate_query_value(field, value)
         if field not in self.bsi_index:
-            raise ValueError(f"{field} is not a numeric field")
+            return BitMap()
         value = self.encode_numeric(field, value)
         return self.bsi_index[field].equals(value)
 
