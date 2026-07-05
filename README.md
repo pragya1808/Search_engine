@@ -92,20 +92,20 @@ Benchmarks were run on a synthetic dataset using randomly generated documents.
 ### Indexing Performance
 | Documents | Time (s) | Throughput (docs/s) |
 |----------:|---------:|--------------------:|
-| 1,000 | 0.088 | 11,373 |
-| 10,000 | 0.519 | 19,267 |
-| 50,000 | 1.704 | 29,338 |
-| 100,000 | 2.967 | 33,709 |
-| 500,000 | 14.189 | 35,238 |
+| 1,000     | 0.088    | 11,373              |
+| 10,000    | 0.519    | 19,267              |
+| 50,000    | 1.704    | 29,338              |
+| 100,000   | 2.967    | 33,709              |
+| 500,000   |14.189    | 35,238              |
 ### Query Performance
-| Query | End-to-End (ms) |
-|------|----------------:|
-| Equality | 0.027 |
-| Greater Than | 0.395 |
-| BETWEEN | 3.074 |
-| IN | 0.062 |
-| AND | 0.447 |
-| OR | 0.081 |
+| Query        | End-to-End (ms) |
+|--------------|----------------:|
+| Equality     | 0.027           |
+| Greater Than | 0.395           |
+| BETWEEN      | 3.074           |
+| IN           | 0.062           |
+| AND          | 0.447           |
+| OR           | 0.081           |
 > Detailed benchmark methodology and results are available in **BENCHMARKS.md**.
 
 ---
@@ -209,19 +209,19 @@ to access the Swagger UI.
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|---------|----------|-------------|
-| GET | / | Health check |
-| POST | /documents | Add document |
-| GET | /documents/{id} | Get document |
-| PUT | /documents/{id} | Update document |
-| DELETE | /documents/{id} | Delete document |
-| POST | /documents/batch | Batch ingest |
-| GET | /search | Search documents |
-| GET | /search/ids | Matching IDs |
-| GET | /search/count | Result count |
-| POST | /save | Save engine |
-| POST | /load | Load engine |
+| Method  | Endpoint        | Description     |
+|---------|-----------------|-----------------|
+| GET     | /               | Health check    |
+| POST    | /documents      | Add document    |
+| GET     | /documents/{id} | Get document    |
+| PUT     | /documents/{id} | Update document |
+| DELETE  | /documents/{id} | Delete document |
+| POST    | /documents/batch| Batch ingest    |
+| GET     | /search         | Search documents|
+| GET     | /search/ids     | Matching IDs    |
+| GET     | /search/count   | Result count    |
+| POST    | /save           | Save engine     |
+| POST    | /load           | Load engine     |
 
 ---
 
