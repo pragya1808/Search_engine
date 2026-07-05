@@ -1,0 +1,14 @@
+Documents,Index Time (s),Docs/sec
+1000,0.088,11373
+10000,0.519,19267
+50000,1.704,29338
+100000,2.967,33708
+500000,14.189,35237
+
+Query,Parse (ms),Execute (ms),End-to-End (ms)
+"country = ""India""",0.0231,0.0013,0.0274
+age > 30,0.0203,0.3499,0.395
+salary BETWEEN 50000 AND 100000,0.0204,2.6654,3.0735
+"country IN (""India"",""USA"")",0.0175,0.0415,0.062
+"country = ""India"" AND age > 30",0.0236,0.422,0.4466
+"country = ""India"" OR country = ""USA""",0.0256,0.0502,0.0811
